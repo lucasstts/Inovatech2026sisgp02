@@ -1,20 +1,21 @@
 import { auth } from "@/services/firebaseConfig"; // A ponte entre o app e o Firebase
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth"; // A função de login do Firebase
+import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth"; // A função de login do Firebase
 
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Link, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
-import { BlurView } from 'expo-blur'
 import {
     Alert,
-    ImageBackground,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
-    View
+    View,
+    Pressable
 } from "react-native"
 
 
@@ -27,57 +28,38 @@ export default function Index() {
 
     const [authUser, setAuthUser] = useState(null);
 
-    // useEffect(() => {
-        
-    //     const unsub = onAuthStateChanged(auth, (user) => {
-    //         if (user) {
-    //             setAuthUser({
-    //                 email: user.email,
-    //                 uid: user.uid
-    //             })
-    //             return;
-    //         }
-    //     })
+    const [rememberMe, setRememberMe] = useState(false)
 
-    // })
-
+   
     async function handleSignIn() {
-    // Validação simples
-    if (!email.trim() || !password.trim()) {
-        return Alert.alert("Campos vazios", "Preencha email e senha corretamente.")
-    }
-
-    try {
-        // Tentativa de login (Sintaxe modular que substitui o firebase.auth()...)
-        const userCredential = await signInWithEmailAndPassword(auth, email, password)
-        console.log("Usuário logado:", userCredential.user.uid)
-        // useEffect(() => {
-        
-        //     const unsub = onAuthStateChanged(auth, (user) => {
-        //         if (user) {
-        //             setAuthUser({
-        //                 email: user.email,
-        //                 uid: user.uid
-        //             })
-        //             return;
-        //         }
-        //     })
-
-        // })
-        
-    } catch (error: any) {
-        // Aqui é onde entra o tratamento de erros que tinha no utils.js
-        console.error(error.code)
-        let message = "Erro ao tentar entrar."
-        
-        if (error.code === 'auth/invalid-email') message = "E-mail inválido."
-        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-            message = "E-mail ou senha incorretos."
+        if (!email.trim() || !password.trim()) {
+            return Alert.alert("Campos vazios", "Preencha email e senha corretamente.")
         }
-        
-        Alert.alert("Falha no Login", message)
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password)
+            
+            // SALVANDO A PREFERÊNCIA
+            await AsyncStorage.setItem('@remember_me', JSON.stringify(rememberMe))
+            
+            console.log("Login realizado. Lembrar:", rememberMe)
+        } catch (error: any) {
+            let message = "E-mail ou senha incorretos."
+            Alert.alert("Falha no Login", message)
+        }
     }
-}
+
+    async function handleForgotPassword() {
+        if (!email.trim()) {
+            return Alert.alert("E-mail necessário", "Digite seu e-mail no campo acima para recuperar a senha.");
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            Alert.alert("Recuperação de senha", "Enviamos um link para o seu e-mail.");
+        } catch (error: any) {
+            Alert.alert("Erro", "Verifique se o e-mail está correto.");
+        }
+    }
         
     return (
         <KeyboardAvoidingView style={{ flex:1 }} behavior={Platform.select({ ios: "padding", android: "height"})}>
@@ -109,7 +91,26 @@ export default function Index() {
                         style={styles.inputAlpha}
                     />
 
+                    <View style={styles.optionsRow}>
+                        {/* Checkbox à esquerda */}
+                        <Pressable 
+                            style={styles.checkboxRow} 
+                            onPress={() => setRememberMe(!rememberMe)}
+                        >
+                            <Ionicons 
+                                name={rememberMe ? "checkbox" : "square-outline"} 
+                                size={20} 
+                                color="#fff" 
+                            />
+                            <Text style={styles.rememberText}>Manter logado</Text>
+                        </Pressable>
 
+                        {/* Esqueci senha à direita */}
+                        <Pressable onPress={handleForgotPassword}>
+                            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+                        </Pressable>
+                    </View>
+                    
                     <Button
                         label="Entrar"
                         onPress={handleSignIn}
@@ -157,6 +158,17 @@ const styles = StyleSheet.create({
         gap: 12,
 
     },
+    rememberContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginVertical: 4,
+        paddingLeft: 4
+    },
+    rememberText: {
+        color: "#fff",
+        fontSize: 14,
+    },
     footerText: {
         textAlign: "center",
         marginTop: 24,
@@ -190,6 +202,23 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         color: "#fff",
+    },
+    optionsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 12,
+    },
+    checkboxRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    forgotPasswordText: {
+        color: "rgba(255, 255, 255, 0.9)",
+        fontSize: 14,
+        fontWeight: "600",
     },
 
 })
