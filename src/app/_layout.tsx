@@ -2,7 +2,8 @@ import { Stack, useRouter, useSegments } from "expo-router"
 import { useEffect, useState } from "react"
 import { onAuthStateChanged, User } from "firebase/auth"
 import { auth } from "@/services/firebaseConfig" // Importando a ponte
-import { ActivityIndicator, View } from "react-native"
+import { ActivityIndicator, View, ImageBackground, StyleSheet } from "react-native"
+import { BlurView } from 'expo-blur'
 
 export default function Layout() {
     // 1. Cria um estado para guardar o usuário logado
@@ -53,10 +54,33 @@ export default function Layout() {
     // 4. Stack decide quais telas existem. 
     // Por enquanto, temo a 'index' (Login) e 'signup' (Cadastro).
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="signup" />
-            <Stack.Screen name="(tabs)/home" />
-        </Stack>
+        <ImageBackground
+            source={require("@/assets/SignupBackground.png")}
+            style={styles.illustration}
+            resizeMode="cover"        
+        >
+            <BlurView
+                intensity={15}
+                tint="dark"
+                style={StyleSheet.absoluteFill}
+            />
+            <Stack screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: "transparent" },
+            }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="signup" />
+                <Stack.Screen name="(tabs)/home" />
+            </Stack>
+        </ImageBackground>
     )
 }
+
+const styles = StyleSheet.create({
+    
+    illustration: {
+        flex: 1,
+        
+    },
+
+});

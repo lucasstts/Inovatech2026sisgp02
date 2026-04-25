@@ -1,3 +1,5 @@
+import { BlurView } from 'expo-blur'
+
 import { Link } from "expo-router"
 import { useState } from "react"
 import { Alert, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native"
@@ -53,66 +55,84 @@ export default function signup() {
     return (
         <KeyboardAvoidingView style={{ flex:1 }} behavior={Platform.select({ ios: "padding", android: "height"})}>
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 
-                <ImageBackground
-                        source={require("@/assets/SignupBackground.png")}
-                        style={styles.illustration}
-                    >
+                    <Text style={styles.title}>
+                        Cadastrar
+                    </Text>
+                    <Text style={styles.subtitle}>
+                        Crie sua conta para acessar.
+                    </Text>
+                    <View style={styles.form}>
+                        <Input
+                            value={name}
+                            placeholder="Nome"
+                            onChangeText={setName}
+                            style={styles.inputAlpha}
+                            placeholderTextColor="#fff" />
+                        <Input
+                            value={email}
+                            placeholder="E-mail"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            onChangeText={setEmail}
+                            style={styles.inputAlpha}
+                            placeholderTextColor="#fff"/>
+                        <Input
+                            value={password}
+                            placeholder="Senha"
+                            secureTextEntry
+                            onChangeText={setPassword}
+                            style={styles.inputAlpha}
+                            placeholderTextColor="#fff"/>
+                        <Input value={confirmPassword}
+                            placeholder="Confirmar Senha"
+                            secureTextEntry
+                            onChangeText={setConfirmPassword}
+                            style={styles.inputAlpha}
+                            placeholderTextColor="#fff"/>
+                        <Button
+                            label="Cadastrar"
+                            onPress={handleSignup}
+                            style={styles.buttonWhite}
+                            textStyle={ styles.buttonText }
+                        />
+                    </View>
 
-                        <Text style={styles.title}>
-                            Cadastrar
-                        </Text>
-                        <Text style={styles.subtitle}>
-                            Crie sua conta para acessar.
-                        </Text>
-                        <View style={styles.form}>
-                            <Input value={name} placeholder="Nome" onChangeText={setName} />
-                            <Input value={email} placeholder="E-mail" keyboardType="email-address" autoCapitalize="none" onChangeText={setEmail} />
-                            <Input value={password} placeholder="Senha" secureTextEntry onChangeText={setPassword} />
-                            <Input value={confirmPassword} placeholder="Confirmar Senha" secureTextEntry onChangeText={setConfirmPassword} />
-                            <Button label="Cadastrar" onPress={handleSignup} />
-                        </View>
-
-                        <Text style= {styles.footerText}>
-                            Já possui conta? {" "}
-                            <Link href="/" style={styles.footerLink}>
-                                Entre aqui.
-                            </Link>
-                        </Text>
-                </ImageBackground>
+                    <Text style= {styles.footerText}>
+                        Já possui conta? {" "}
+                        <Link href="/" style={styles.footerLink}>
+                            Entre aqui.
+                        </Link>
+                    </Text>
             </ScrollView>
         </KeyboardAvoidingView>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignContent: "center",
-        backgroundColor: "#FDFDFD",
-        padding: 32,
-    },
-    illustration: {
-        
-        width: "100%",
-        height: "100%",
-        
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: "center",
+        paddingHorizontal: 24,
+        paddingVertical: 40,
     },
     title: {
         padding: 24,
-        marginTop: 64,
+        marginTop: 2,
         fontSize: 32,
-        fontWeight: 900,
+        fontWeight: 700,
+        color: "rgba(255, 255, 255, 0.8)",
         alignContent: "center",
         marginHorizontal: "auto"
         
     },
     subtitle: {
         fontSize: 16,
+        color: "rgba(255, 255, 255, 0.7)",
         alignContent: "center",
         marginHorizontal: "auto"
     },
@@ -125,12 +145,37 @@ const styles = StyleSheet.create({
     footerText: {
         textAlign: "center",
         marginTop: 24,
-        color: "#585860",
+        color: "#ffffff",
         marginBottom: 24,
     },
     footerLink: {
-        color: "#032AD7",
+        color: "#f9fafb",
         fontWeight: 700,
+    },
+    buttonText: {
+        color: "rgba(255, 255, 255, 0.7)",
+        fontWeight: "700",
+        fontSize: 18,
+        textAlign: "center",
+        includeFontPadding: false,
+        textAlignVertical: "center",
+    },
+    buttonWhite: {
+        backgroundColor: "rgba(255, 255, 255, 0.25)",
+        borderRadius: 12,
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.5)",
+        justifyContent: 'center', 
+        alignItems: 'center',
+    },
+    inputAlpha: {
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        borderColor: "rgba(255, 255, 255, 0.15)",
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 16,
+        color: "#fff",
     }
 
 })

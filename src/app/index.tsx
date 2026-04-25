@@ -5,9 +5,10 @@ import { Button } from "@/components/Button"
 import { Input } from "@/components/Input"
 import { Link, useRouter } from "expo-router"
 import { useEffect, useState } from "react"
+import { BlurView } from 'expo-blur'
 import {
     Alert,
-    Image,
+    ImageBackground,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -81,76 +82,73 @@ export default function Index() {
     return (
         <KeyboardAvoidingView style={{ flex:1 }} behavior={Platform.select({ ios: "padding", android: "height"})}>
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
-            >
-                <View style={styles.container}>
-                    <Image
-                        source={require("@/assets/logo.png")}
-                        style={styles.illustration}
+            >   
+                <Text style={styles.title}>
+                    Entrar
+                </Text>
+                <Text style={styles.subtitle}>
+                    Acesse sua conta com e-mail e senha.
+                </Text>
+                <View style={styles.form}>
+                    <Input placeholder="E-mail"
+                        keyboardType="email-address"
+                        autoCapitalize="none" // Evita que o celular pegue a primeira letra maiúscula
+                        onChangeText={setEmail} // Toda letra digitada vai para a variável 'email'onChangeText={setEmail}
+                        placeholderTextColor="#fff"
+                        style={styles.inputAlpha}
+                    />
+                    
+
+                    <Input placeholder="Senha"
+                        secureTextEntry
+                        onChangeText={setPassword} // Toda letra digitada vai para a variável 'password'onChangeText={setEmail}
+                        placeholderTextColor="#fff"
+                        style={styles.inputAlpha}
                     />
 
-                    <Text style={styles.title}>
-                        Entrar
-                    </Text>
-                    <Text style={styles.subtitle}>
-                        Acesse sua conta com e-mail e senha.
-                    </Text>
-                    <View style={styles.form}>
-                        <Input placeholder="E-mail"
-                            keyboardType="email-address"
-                            autoCapitalize="none" // Evita que o celular pegue a primeira letra maiúscula
-                            onChangeText={setEmail} // Toda letra digitada vai para a variável 'email'
-                        />
-                        
 
-                        <Input placeholder="Senha"
-                            secureTextEntry
-                            onChangeText={setPassword} // Toda letra digitada vai para a variável 'password'
-                        />
-
-
-                        <Button label="Entrar" onPress={handleSignIn}/>
-                    </View>
-
-                    <Text style= {styles.footerText}>
-                        Não possui conta? {" "}
-                        <Link href="/signup" style={styles.footerLink}>
-                            Cadastre-se aqui.
-                        </Link>
-                    </Text>
+                    <Button
+                        label="Entrar"
+                        onPress={handleSignIn}
+                        style={styles.buttonWhite}
+                        textStyle={ styles.buttonText }
+                    />
                 </View>
+
+                <Text style= {styles.footerText}>
+                    Não possui conta? {" "}
+                    <Link href="/signup" style={styles.footerLink}>
+                        Cadastre-se aqui.
+                    </Link>
+                </Text>
             </ScrollView>
         </KeyboardAvoidingView>
     )
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignContent: "center",
-        backgroundColor: "#FDFDFD",
-        padding: 32,
-    },
-    illustration: {
-        
-        width: "80%",
-        height: 330,
-        resizeMode: "contain",
-        marginTop: 62,
-        marginHorizontal: "auto",
-        
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: "center",
+        paddingHorizontal: 24,
+        paddingVertical: 40,
     },
     title: {
         fontSize: 32,
-        fontWeight: 900,
-        alignContent: "center",
+        fontWeight: 700,
+        color: "rgba(255, 255, 255, 0.8)",
         marginHorizontal: "auto"
         
     },
     subtitle: {
         fontSize: 16,
+        color: "rgba(255, 255, 255)",
+        textShadowColor: "#000",
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
         alignContent: "center",
         marginHorizontal: "auto"
     },
@@ -162,12 +160,37 @@ const styles = StyleSheet.create({
     footerText: {
         textAlign: "center",
         marginTop: 24,
-        color: "#585860"
+        color: "#ffffff"
     },
     footerLink: {
-        color: "#032AD7",
+        color: "#ffffff",
         fontWeight: 700,
-    }
+    },
+    buttonText: {
+        color: "rgba(255, 255, 255, 0.7)",
+        fontWeight: "700",
+        fontSize: 18,
+        textAlign: "center",
+        includeFontPadding: false,
+        textAlignVertical: "center",
+    },
+    buttonWhite: {
+        backgroundColor: "rgba(255, 255, 255, 0.25)",
+        borderRadius: 12,
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: "rgba(255, 255, 255, 0.5)",
+        justifyContent: 'center', 
+        alignItems: 'center',
+    },
+    inputAlpha: {
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        borderColor: "rgba(255, 255, 255, 0.15)",
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 16,
+        color: "#fff",
+    },
 
 })
 
