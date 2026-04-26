@@ -30,14 +30,17 @@ export default function Layout() {
     useEffect(() => {
         if (loading) return;
 
-        const isAuthPage = segments[0] === "signup" || segments.length === 0 || segments[0] === "index";
+        const isAuthPage = segments[0] === "signup" || !segments[0];
 
         if (!user && !isAuthPage) {
             // Se NÃO está logado e NÃO está em uma página de login/cadastro, manda pro login
             router.replace("/");
-        } else if (user && isAuthPage) {
-            // Se JÁ ESTÁ logado e tenta acessar login/cadastro, manda pra Home
+        } else if (user && user.emailVerified && isAuthPage) {
+            // SÓ ENTRA AQUI SE TIVER VERIFICADO
             router.replace("/home");
+        } else if (user && !user.emailVerified && !isAuthPage) {
+            // SE ESTIVER LOGADO MAS SEM VERIFICAÇÃO, FORÇA VOLTAR PRO LOGIN
+            router.replace("/");
         }
     }   , [user, loading, segments]);
 

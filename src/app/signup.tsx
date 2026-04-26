@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur'
 
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
 import { useState } from "react"
 import { Alert, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native"
 
@@ -12,7 +12,7 @@ import { Input } from "@/components/Input"
 import { auth } from "@/services/firebaseConfig"
 
 // FUNÇÕES ESPECÍFICAS DO FIREBASE
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth"
 
 export default function signup() {
 
@@ -21,6 +21,7 @@ export default function signup() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const router = useRouter()
 
     // Lógica Assíncrona (A lógica de enviar para o Firebase)
     async function handleSignup() {
@@ -32,13 +33,36 @@ export default function signup() {
         }
 
         try {
-            // Salto 1: Criar o usuário na nuvem
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+            // Passo 1: Criar o usuário na nuvem
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
             
-            // Salto 2: Colocar o nome no perfil dele
+            // Passo 2: Envia o e-mail de verificação
+            auth.languageCode = 'pt';
+            await sendEmailVerification(user);
+
+            // Passo 3: Colocar o nome no perfil dele
             await updateProfile(userCredential.user, {
                 displayName: name
-            }).catch (err => console.log("Erro no cadastro", "Verifique os dados e tente novamente.", err))
+            });
+
+            // Passo 4: Deslogar para forçar a verificação
+            await auth.signOut();
+
+            Alert.alert(
+                "Verifique seu e-mail",
+                "Enviamos um link de confirmação para o seu e-mail. Verifique sua conta antes de fazer o login.",
+
+                [
+                    { 
+                      text: "OK", 
+                      onPress: () => router.replace("/") // Força a volta para o login ao clicar
+                    }
+                ]
+            );
+            
+            
+
         } catch (error: any) {
             console.log("Erro completo:", error.code) 
             

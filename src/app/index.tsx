@@ -1,5 +1,7 @@
 import { auth } from "@/services/firebaseConfig"; // A ponte entre o app e o Firebase
-import { signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth"; // A função de login do Firebase
+import * as Google from 'expo-auth-session/providers/google'
+import * as AuthSession from 'expo-auth-session'
+import { signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence, GoogleAuthProvider, signInWithCredential, OAuthCredential, Auth, User } from "firebase/auth"; // A função de login do Firebase
 
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,15 +22,52 @@ import {
 
 
 
+useEffect(() => {
+    const checkPersistence = async () => {
+        const rememberData = await AsyncStorage.getItem('@remember_me');
+        const shouldRemember = rememberData ? JSON.parse(rememberData) : false;
 
+        // Se o usuário NÃO marcou "Lembrar de mim" da última vez, forçamos o logout no Reload
+        if (!shouldRemember) {
+            await auth.signOut();
+            console.log("Sessão limpa: 'Lembrar de mim' estava desativado.");
+        }
+    };
+
+    checkPersistence();
+}, []);
 
 export default function Index() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    // const [request, response, promptAsync] = Google.useAuthRequest({
+    //     iosClientId: '856383107347-tn6paidob0ac44gc28g45ahpreanrfo1.apps.googleusercontent.com',
+    //     androidClientId: '856383107347-25d157vfikbl8skrs601do7gsajov2oo.apps.googleusercontent.com',
+    //     webClientId: '856383107347-968bgekv1qoum45s0k9r4j83ssn0dpp8.apps.googleusercontent.com',
+  
+    // });
 
-    const [authUser, setAuthUser] = useState(null);
+  
 
     const [rememberMe, setRememberMe] = useState(false)
+    const router = useRouter();
+    
+
+    // useEffect(() => {
+    //     if (response?.type === 'success') {
+    //         const { id_token } = response.params;
+    //         const credential = GoogleAuthProvider.credential(id_token);
+
+    //         signInWithCredential(auth, credential)
+    //             .then(() => {
+    //                 console.log("Login com Google Sucesso!");
+    //             })
+    //             .catch(error => {
+    //                 console.error(error);
+    //                 Alert.alert("Erro", "Falha ao autenticar com Google");
+    //             });
+    //     }
+    // }, [response]);
 
    
     async function handleSignIn() {
@@ -37,15 +76,35 @@ export default function Index() {
         }
 
         try {
-            await signInWithEmailAndPassword(auth, email, password)
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+        // --- TRAVA DE SEGURANÇA: VERIFICAÇÃO DE E-MAIL ---
+            if (!user.emailVerified) {
+                Alert.alert(
+                    "E-mail não verificado", 
+                    "Sua conta ainda não foi verificada. Verifique seu e-mail e clique no link de ativação para acessar o EcoAlerta."
+            );
             
+                await auth.signOut(); 
+                return; 
+            }
+
             // SALVANDO A PREFERÊNCIA
             await AsyncStorage.setItem('@remember_me', JSON.stringify(rememberMe))
             
             console.log("Login realizado. Lembrar:", rememberMe)
+
         } catch (error: any) {
-            let message = "E-mail ou senha incorretos."
-            Alert.alert("Falha no Login", message)
+            console.error(error.code);
+            let message = "Erro ao tentar entrar.";
+            
+            if (error.code === 'auth/invalid-email') message = "E-mail inválido.";
+            if (error.code === 'auth/invalid-credential') {
+                message = "E-mail ou senha incorretos.";
+            }
+            
+            Alert.alert("Falha no Login", message);
         }
     }
 
@@ -102,7 +161,7 @@ export default function Index() {
                                 size={20} 
                                 color="#fff" 
                             />
-                            <Text style={styles.rememberText}>Manter logado</Text>
+                            <Text style={styles.rememberText}>Lembrar de mim</Text>
                         </Pressable>
 
                         {/* Esqueci senha à direita */}
@@ -111,13 +170,45 @@ export default function Index() {
                         </Pressable>
                     </View>
                     
-                    <Button
-                        label="Entrar"
-                        onPress={handleSignIn}
-                        style={styles.buttonWhite}
-                        textStyle={ styles.buttonText }
+                        <Button
+                            label="Entrar"
+                            onPress={handleSignIn}
+                            style={styles.buttonWhite}
+                            textStyle={ styles.buttonText }
                     />
-                </View>
+
+
+                            {/* <View style={styles.dividerContainer}>
+                                <View style={styles.dividerLine} />
+                                {/* <Text style={styles.dividerText}>ou entre com</Text>
+                                <View style={styles.dividerLine} /> 
+                            </View> */}
+              
+                        {/* LINHA DE BOTÕES SOCIAIS */}
+                        {/* <View style={styles.socialRow}>
+                            <Pressable 
+                                style={styles.socialButton} 
+                                onPress={() => promptAsync()} // Google
+                                disabled={!request}
+                            >
+                                <Ionicons name="logo-google" size={28} color="#fff" />
+                            </Pressable>
+
+                            <Pressable 
+                                style={styles.socialButton} 
+                                onPress={() => }
+                            >
+                                <Ionicons name="logo-facebook" size={28} color="#fff" />
+                            </Pressable>
+
+                            <Pressable 
+                                style={styles.socialButton} 
+                                onPress={() => }
+                            >
+                                <Ionicons name="logo-github" size={28} color="#fff" />
+                            </Pressable>
+                        </View> */}
+                    </View>
 
                 <Text style= {styles.footerText}>
                     Não possui conta? {" "}
@@ -220,6 +311,41 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "600",
     },
+    // socialRow: {
+    //     flexDirection: 'row',
+    //     justifyContent: 'center',
+    //     gap: 20, // Espaço entre os ícones
+    //     marginTop: 10,
+    // },
+    // socialButton: {
+    //     width: 60,
+    //     height: 60,
+    //     backgroundColor: "rgba(255, 255, 255, 0.15)",
+    //     borderRadius: 30, // Deixa o botão redondo
+    //     borderWidth: 1,
+    //     borderColor: "rgba(255, 255, 255, 0.3)",
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    // },
+    // dividerContainer: {
+    //     flexDirection: 'row',
+    //     alignItems: 'center',
+    //     marginTop: 30,
+    //     marginBottom: 5,
+    // },
+    // dividerLine: {
+    //     flex: 1,
+    //     height: 1,
+    //     backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    // },
+    // dividerText: {
+    //     color: 'rgba(255, 255, 255, 0.6)',
+    //     paddingHorizontal: 10,
+    //     fontSize: 12,
+    //     textTransform: 'uppercase',
+    // },
 
 })
+
+
 
