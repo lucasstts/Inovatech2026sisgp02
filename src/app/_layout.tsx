@@ -62,11 +62,11 @@ export default function Layout() {
             style={styles.illustration}
             resizeMode="cover"        
         >
-            <BlurView
+            {/* <BlurView
                 intensity={15}
                 tint="dark"
                 style={StyleSheet.absoluteFill}
-            />
+            /> */}
             <Stack screenOptions={{
                 headerShown: false,
                 contentStyle: { backgroundColor: "transparent" },
